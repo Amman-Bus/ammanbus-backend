@@ -9,19 +9,14 @@
 </head>
 
 <body>
-    <h1>Welcome to Amman Bus TMS</h1>
-
-    Hello, {{ user.get_username|default:'Guest' }}!
+    <h1>Welcome to Driver Dashboard</h1>
 
     <br>
 
-    {% if user.is_authenticated%}
     <h3>Hi {{user.get_username}}</h3>
     <a href="{% url 'logout_user' %}">Logout</a> <br>
-    {% else %}
-    <a href="{% url 'register' %}">Register</a> <br>
-    <a href="{% url 'login_user' %}">Login</a>
-    {% endif %}
+
+    
 </body>
 
 </html>

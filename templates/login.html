@@ -1,3 +1,12 @@
+<style>
+    label, input {
+        display: block;
+    }
+    span.helptext {
+        display: none;
+    }
+</style>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -20,6 +29,16 @@
             <input type="submit" value="Login" class="btn btn-block btn-primary">
         </div>
     </form>
+
+    <a href="{% url 'home' %}">Back to Home</a>
+
+    <br>
+
+    <a href="{% url 'passenger_register' %}">Register as Passenger</a>
+
+    <br>
+
+    <a href="{% url 'driver_register' %}">Register as Driver</a>
 
 </body>
 

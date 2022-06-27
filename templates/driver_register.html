@@ -1,3 +1,13 @@
+<style>
+  label, input {
+      display: block;
+  }
+  span.helptext {
+      display: none;
+  }
+</style>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -14,6 +24,9 @@
     {% csrf_token %}
     {{form.as_p}}
     <input type="submit" value="Register" class="btn btn-block btn-primary">
+  </form>
+
+  <a href="{% url 'login' %}">Back to login</a>
 </body>
 
 </html>
