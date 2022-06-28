@@ -7,6 +7,10 @@ from mainapp.models import Station,Route,StationStop
 from rest_framework import routers, serializers, viewsets
 from .serializers import StationSerializer,RouteSerializer,StationStopSerializer
 
+from rest_framework.response import Response
+
+import networkx as nx
+
 # Create your views here.
 # function based views
 """@api_view(['GET'])
@@ -83,3 +87,36 @@ class StationStopViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
+
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def find_route(request, from_id, to_id):
+    from_station = Station.objects.get(id=from_id)
+    to_station = Station.objects.get(id=to_id)
+    graph = build_graph()
+    paths = list(nx.shortest_simple_paths(graph, from_station.id, to_station.id, weight='weight'))
+    #print(nx.path_weight(graph, paths[0], weight='weight')) #Calculate total time
+    station_list = []
+    path_graph = nx.path_graph(paths[0])
+    edge0 = list(path_graph.edges(data=True))[0]
+    station_list.append(Station.objects.get(id=edge0[0]))
+    for ea in path_graph.edges():
+        # print from_node, to_node, edge's attributes
+        #print(ea[1])
+        station_list.append(Station.objects.get(id=ea[1]))
+    serializer = StationSerializer(station_list, many=True)
+    return Response(serializer.data)
+
+
+def build_graph():
+    G = nx.Graph()
+    routes = Route.objects.all()
+    for route in routes:
+        station_list = route.station_stops.all()
+        for i in range(len(station_list)-1):
+            G.add_edges_from([(station_list[i].station.id,station_list[i+1].station.id,
+                               {"weight": station_list[i].time_to_next_station, "route": route.name})])
+    #print(G.edges.data())
+    return G
