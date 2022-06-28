@@ -4,7 +4,7 @@ from django.urls import path , include
 
 
 from rest_framework import routers, serializers, viewsets
-from mainapp.api.viewsets import StationViewSet,RouteViewSet,StationStopViewSet
+from mainapp.api.viewsets import StationViewSet,RouteViewSet,StationStopViewSet,find_route
 
 router = routers.DefaultRouter()
 router.register(r'stations', StationViewSet)
@@ -14,6 +14,7 @@ router.register(r'stationstop', StationStopViewSet)
 urlpatterns=[
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('find/<str:from_id>/<str:to_id>', find_route, name='find-route'),
 
    
 ]

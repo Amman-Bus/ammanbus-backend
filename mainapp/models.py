@@ -26,9 +26,13 @@ class StationStop(models.Model):
     order_number=models.IntegerField()
     time_to_next_station=models.IntegerField()
     distance_to_next_station=models.IntegerField()
+    
+    def __str__(self):
+        return f'{self.route}-{self.station}-{self.order_number}'
+
     class Meta:
         unique_together = ['route', 'station']
-        ordering = ['order_number']
+        ordering = ['route']
 
 
 class Bus(models.Model):
