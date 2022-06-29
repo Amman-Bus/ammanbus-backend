@@ -120,8 +120,6 @@ def add_overlap_stations_edge(graph, station_stop, overlap_stations):
         for stop_id in overlap_stations[station_stop.station_id]:
             graph.add_edges_from([(station_stop.id, stop_id,
                                    {"weight": 1})])
-            
-        overlap_stations[station_stop.station_id].append(station_stop.id)
     else:
         overlap_stations[station_stop.station_id] = [station_stop.id]
 
@@ -148,7 +146,7 @@ def build_directions_response(graph, paths):
                 current_route_dic = {"route_name": current_route.name,
                                      "start_time": start_time.strftime("%m/%d/%Y, %H:%M:%S"), "station_stops": []}
                 routes.append(current_route_dic)
-            
+            print(current_route_dic)
             current_route_dic["station_stops"].append(StationStopSerializer(stop).data)
         paths_json.append({"path": 1, "total_time": total_time, "routes": routes})
     return paths_json
@@ -160,5 +158,6 @@ def get_station_stops_for_path(path):
     edge0 = list(path_graph.edges(data=True))[0]
     station_stops.append(StationStop.objects.get(id=edge0[0]))
     for ea in path_graph.edges():
+        # print from_node, to_node, edge's attributes
         station_stops.append(StationStop.objects.get(id=ea[1]))
     return station_stops

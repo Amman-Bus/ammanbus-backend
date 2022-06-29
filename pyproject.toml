@@ -12,6 +12,7 @@ djangorestframework-simplejwt = "^5.2.0"
 Markdown = "^3.3.7"
 django-filter = "^22.1"
 networkx = "^2.8.4"
+django-cors-headers = "^3.13.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
