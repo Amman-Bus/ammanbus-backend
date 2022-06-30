@@ -47,3 +47,14 @@ class BusStationStop(models.Model):
     route_id=models.IntegerField()
     time=models.TimeField(auto_now=False, auto_now_add=False)
 
+class FareType(models.IntegerChoices):
+    base = 0, 'Base'
+    distance = 1, 'Distance'
+    
+
+class FareTable(models.Model):
+    fare=models.FloatField()
+    fare_type = models.IntegerField(default=FareType.base, choices=FareType.choices)
+
+
+    
