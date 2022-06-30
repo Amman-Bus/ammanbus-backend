@@ -1,17 +1,16 @@
 from datetime import datetime, timedelta
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.serializers import Serializer
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
-# from .utils import getStationsList,getStationsDetail,createStation,updateStation,deleteStation
-
-from mainapp.models import Station, Route, StationStop
-from rest_framework import routers, serializers, viewsets
-from .serializers import StationSerializer, RouteSerializer, StationStopSerializer
-
-from rest_framework.response import Response
+from math import ceil
 
 import networkx as nx
+from rest_framework import viewsets
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+
+from mainapp.models import Station, Route, StationStop,FareTable
+from .serializers import StationSerializer, RouteSerializer, StationStopSerializer
+
+# from .utils import getStationsList,getStationsDetail,createStation,updateStation,deleteStation
 
 # Create your views here.
 # function based views
@@ -94,7 +93,7 @@ def find_route(request, from_id, to_id):
     if to_station == from_station:
         return Response({'error': "same stations"})
     graph = build_graph()
-    paths = list(nx.shortest_simple_paths(graph, from_station.id, to_station.id, weight='weight'))
+    paths = list(nx.shortest_simple_paths(graph, from_station.id, to_station.id, weight='time'))
     return Response({'paths': build_directions_response(graph, paths)})
 
 
@@ -106,7 +105,8 @@ def build_graph():
         station_stops = route.station_stops.all()
         for i in range(len(station_stops) - 1):
             graph.add_edges_from([(station_stops[i].id, station_stops[i + 1].id,
-                                   {"weight": station_stops[i].time_to_next_station})])
+                                   {"time": station_stops[i].time_to_next_station,
+                                    "distance": station_stops[i].distance_to_next_station, })])
             add_overlap_stations_edge(graph, station_stops[i], overlap_stations)
             if i == len(station_stops) - 2:
                 add_overlap_stations_edge(graph, station_stops[i + 1], overlap_stations)
@@ -119,8 +119,8 @@ def add_overlap_stations_edge(graph, station_stop, overlap_stations):
     if station_stop.station_id in overlap_stations:
         for stop_id in overlap_stations[station_stop.station_id]:
             graph.add_edges_from([(station_stop.id, stop_id,
-                                   {"weight": 1})])
-            
+                                   {"time": 1, "distance": 0})])
+
         overlap_stations[station_stop.station_id].append(station_stop.id)
     else:
         overlap_stations[station_stop.station_id] = [station_stop.id]
@@ -130,7 +130,9 @@ def build_directions_response(graph, paths):
     paths_json = []
     for path in paths:
 
-        total_time = nx.path_weight(graph, path, weight='weight')  # Calculate total time
+        total_time = nx.path_weight(graph, path, weight='time')  # Calculate total time
+        total_distance = nx.path_weight(graph, path, weight='distance')  # Calculate distance time
+        fare = calculate_fare(total_distance)
         station_stops = get_station_stops_for_path(path)
         current_route = station_stops[0].route
         now = datetime.now() + timedelta(minutes=2)
@@ -148,9 +150,10 @@ def build_directions_response(graph, paths):
                 current_route_dic = {"route_name": current_route.name,
                                      "start_time": start_time.strftime("%m/%d/%Y, %H:%M:%S"), "station_stops": []}
                 routes.append(current_route_dic)
-            
+
             current_route_dic["station_stops"].append(StationStopSerializer(stop).data)
-        paths_json.append({"path": 1, "total_time": total_time, "routes": routes})
+        paths_json.append({"path": 1, "total_time": total_time,
+                           "distance": total_distance, "fare": fare, "routes": routes})
     return paths_json
 
 
@@ -162,3 +165,7 @@ def get_station_stops_for_path(path):
     for ea in path_graph.edges():
         station_stops.append(StationStop.objects.get(id=ea[1]))
     return station_stops
+
+
+def calculate_fare(distance):
+    return (FareTable.objects.get(id=1).fare +(FareTable.objects.get(id=2).fare*ceil(distance/1000)))
