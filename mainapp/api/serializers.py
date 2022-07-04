@@ -23,14 +23,16 @@ class RouteSerializer(ModelSerializer):
         model = Route
         fields = '__all__'
 
+class DriverSerializer(ModelSerializer):
+    class Meta:
+        model = Driver
+        fields = '__all__'
+
 
 class BusSerializer(ModelSerializer):
+    driver = DriverSerializer(required=False)
     class Meta:
         model = Bus
         fields = '__all__'
 
 
-class DriverSerializer(ModelSerializer):
-    class Meta:
-        model = Driver
-        fields = '__all__'

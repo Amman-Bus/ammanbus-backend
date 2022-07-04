@@ -3,47 +3,27 @@ from math import ceil
 
 import networkx as nx
 from django.http import JsonResponse
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from mainapp.models import Station, Route, StationStop, FareTable, Bus, Driver
 from .serializers import StationSerializer, RouteSerializer, StationStopSerializer, BusSerializer, DriverSerializer
 
-# from .utils import getStationsList,getStationsDetail,createStation,updateStation,deleteStation
 
-# Create your views here.
-# function based views
-"""@api_view(['GET'])
-@permission_classes([AllowAny])
-def getStations(request):
-    return getStationsList(request)
+class IsDriver(permissions.BasePermission):
 
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def getStation(request, pk):
-    return getStationsDetail(request, pk)
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and request.user.is_driver:
+            return True
+        return False
 
-   
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def createStationaApi(request):
-    return createStation(request)
-
-
-@api_view(['DELETE'])
-@permission_classes([AllowAny])
-def deleteStationApi(request, pk):
-    return deleteStation(request, pk)
-
-
-@api_view(['PUT'])
-@permission_classes([AllowAny])
-def updateStationApi(request, pk):
-    return updateStation(request, pk)"""
+    def has_object_permission(self, request, view, obj):
+        if obj.driver.user == request.user:
+            return True
+        return False
 
 
 class StationViewSet(viewsets.ModelViewSet):
@@ -52,10 +32,10 @@ class StationViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
 
-        if self.action == 'list':
+        if self.action == 'list' or self.action == 'retrieve':
             permission_classes = [AllowAny]
         else:
-            permission_classes = [IsAuthenticated]
+            permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
 
 
@@ -65,10 +45,10 @@ class RouteViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
 
-        if self.action == 'list':
+        if self.action == 'list' or self.action == 'retrieve':
             permission_classes = [AllowAny]
         else:
-            permission_classes = [IsAuthenticated]
+            permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
 
 
@@ -80,10 +60,10 @@ class StationStopViewSet(viewsets.ModelViewSet):
 
         # Instantiates and returns the list of permissions that this view requires.
         # actions : list, create , retrive , update, partial_update,destroy
-        if self.action == 'list':
+        if self.action == 'list' or self.action == 'retrieve':
             permission_classes = [AllowAny]
         else:
-            permission_classes = [IsAuthenticated]
+            permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
 
 
@@ -95,7 +75,7 @@ class BusViewSet(viewsets.ModelViewSet):
         if self.action == 'list' or self.action == 'retrieve':
             permission_classes = [AllowAny]
         else:
-            permission_classes = [IsAuthenticated]
+            permission_classes = [IsAdminUser | IsDriver]
         return [permission() for permission in permission_classes]
 
 
@@ -104,10 +84,7 @@ class DriverViewSet(viewsets.ModelViewSet):
     serializer_class = DriverSerializer
 
     def get_permissions(self):
-        if self.action == 'list' or self.action == 'retrieve':
-            permission_classes = [AllowAny]
-        else:
-            permission_classes = [IsAuthenticated]
+        permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
 

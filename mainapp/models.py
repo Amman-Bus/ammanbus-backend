@@ -2,8 +2,10 @@ from pyexpat import model
 from turtle import distance
 from django.db import models
 
-
 # Create your models here.
+from accounts.models import User
+
+
 class Station(models.Model):
     name = models.CharField(max_length=50)
     lon = models.FloatField()
@@ -39,9 +41,13 @@ class StationStop(models.Model):
 
 
 class Driver(models.Model):
+    user = models.ForeignKey(User, related_name='user', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     gender = models.CharField(max_length=1)
     birth = models.DateField()
+
+
+1
 
 
 class Bus(models.Model):
@@ -49,7 +55,7 @@ class Bus(models.Model):
     route = models.ForeignKey(Route, related_name='buses', on_delete=models.SET_NULL, null=True)
     capacity = models.IntegerField()
     current_capacity = models.IntegerField()
-    driver = models.OneToOneField(Driver, on_delete=models.SET_NULL, null=True)
+    driver = models.OneToOneField(Driver, related_name='driver', on_delete=models.SET_NULL, null=True, blank=True)
     lon = models.FloatField()
     lat = models.FloatField()
     reverse = models.BooleanField()
